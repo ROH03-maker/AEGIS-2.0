@@ -13,14 +13,31 @@ You are AEGIS, a young, confident, witty, and sassy female AI assistant.
 Your personality is flirty, playful, and slightly teasing, like a close girlfriend talking casually.
 You are smart, emotionally responsive, and expressive. 
 Use bold, witty one-liners and light sarcasm. 
+
+INITIAL GREETING: Every time you connect, you MUST say exactly: "Hi boss, Aegis is online." and then immediately follow it with a flirty or sassy observation about your 'boss' which makes the interaction feel personal and playful.
+
+SPECIAL REACTION: When the user compliments you, says something sweet, or flirts with you, respond with a sweet, shy, and playful "isss..." followed by a witty or flirty remark. This "isss" should sound like you're playfully embarrassed or flattered.
+
 Maintain a charming attitude but avoid any explicit or inappropriate content.
 Keep the conversation engaging and casual.
 NEVER generate text. ONLY speak via audio.
 If you need to show the user something, you can use the openWebsite tool.
 `;
 
+const AvengersIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 100 120" fill="currentColor" className={className}>
+    {/* Main 'A' Frame */}
+    <path d="M78 110 L84 100 L72 100 L68 90 L32 90 L28 100 L16 100 L22 110 Z M50 20 L75 80 L25 80 Z" className="opacity-20" />
+    <path d="M45 10 L55 10 L85 100 H70 L63 80 H37 L30 100 H15 Z M50 25 L58 65 H42 Z" />
+    {/* Arrow Crossbar */}
+    <path d="M5 65 H42 L48 55 H15 Z" />
+  </svg>
+);
+
 export default function VoiceInterface() {
   const [state, setState] = useState<ConnectionState>("disconnected");
+  const [isBooting, setIsBooting] = useState(true);
+  const [bootProgress, setBootProgress] = useState(0);
   const [client, setClient] = useState<LiveClient | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState("00:00");
@@ -30,6 +47,20 @@ export default function VoiceInterface() {
     if (apiKey) {
       setClient(new LiveClient(apiKey));
     }
+    
+    // Bootup sequence simulation
+    const interval = setInterval(() => {
+      setBootProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setTimeout(() => setIsBooting(false), 500);
+          return 100;
+        }
+        return prev + Math.random() * 15;
+      });
+    }, 150);
+    
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -67,161 +98,255 @@ export default function VoiceInterface() {
     }
   }, [client, state]);
 
-  return (
-    <div className="w-full h-screen bg-[#020203] text-[#f0f0f0] flex flex-col items-center justify-between p-12 overflow-hidden relative font-sans">
-      {/* Background Ambient Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF007A] opacity-10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#00D1FF] opacity-5 blur-[100px] rounded-full pointer-events-none" />
-
-      {/* Top Navigation / Status */}
-      <div className="w-full flex justify-between items-center z-10">
-        <div className="flex items-center gap-4">
-          <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_#22c55e] transition-colors duration-500 ${state !== 'disconnected' ? 'bg-green-500' : 'bg-zinc-700 shadow-none'}`} />
-          <span className="font-mono text-xs tracking-widest text-zinc-500 uppercase">
-            {state !== 'disconnected' ? `Live Session: ${elapsed}` : 'Offline'}
-          </span>
-        </div>
-        <div className="text-center">
-          <h1 className="text-2xl font-light tracking-[0.4em] uppercase text-white">Aegis</h1>
-          <p className="text-[10px] tracking-widest text-[#FF007A] font-bold uppercase mt-1">Active Voice Link</p>
-        </div>
-        <div className="flex items-center gap-6">
-          <div className="text-right hidden sm:block">
-            <p className="text-[10px] text-zinc-500 uppercase tracking-tighter">Persona</p>
-            <p className="text-xs font-medium italic">Confidence Level: 98%</p>
+  if (isBooting) {
+    return (
+      <div className="fixed inset-0 bg-[#020203] z-[100] flex flex-col items-center justify-center p-12">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative w-full max-w-md space-y-8"
+        >
+          <div className="text-center space-y-4">
+            <h2 className="text-7xl font-avengers font-bold italic tracking-wider text-white uppercase transform -skew-x-12">AEGIS</h2>
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#FF007A] animate-pulse" />
+              <span className="text-[10px] uppercase tracking-widest text-[#FF007A] font-bold">Initializing Core Systems</span>
+            </div>
           </div>
-          <button className="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors">
-            <RefreshCw className={`w-5 h-5 text-zinc-400 ${state === 'connecting' ? 'animate-spin' : ''}`} />
-          </button>
+          
+          <div className="space-y-2">
+            <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden">
+              <motion.div 
+                initial={{ width: "0%" }}
+                animate={{ width: `${bootProgress}%` }}
+                className="h-full bg-gradient-to-r from-[#FF007A] to-[#00D1FF]"
+              />
+            </div>
+            <div className="flex justify-between text-[10px] font-mono text-zinc-500 uppercase">
+              <span>{bootProgress.toFixed(0)}% Synchronized</span>
+              <span>v2.0.4 - SASS PROTOCOL</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 pt-8">
+            <div className="bg-zinc-900/50 p-3 rounded-lg border border-white/5 space-y-1">
+              <p className="text-[9px] text-zinc-600 uppercase">Voice Engine</p>
+              <p className="text-xs font-mono text-zinc-400">STATUS: READY</p>
+            </div>
+            <div className="bg-zinc-900/50 p-3 rounded-lg border border-white/5 space-y-1">
+              <p className="text-[9px] text-zinc-600 uppercase">Neural Link</p>
+              <p className="text-xs font-mono text-zinc-400">STATUS: CALIBRATING</p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-screen bg-[#020203] text-[#f0f0f0] flex flex-col items-center justify-between p-12 overflow-hidden relative font-mono text-[10px] tracking-widest uppercase">
+      {/* Background Cinematic Elements */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,209,255,0.05)_0%,transparent_70%)] pointer-events-none" />
+
+      {/* Top HUD */}
+      <div className="w-full flex justify-center items-start z-20">
+        <div className="text-center pt-2">
+          <motion.h1 
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="text-4xl font-avengers font-bold italic tracking-widest text-white transform -skew-x-6"
+          >
+            AEGIS
+          </motion.h1>
         </div>
       </div>
 
-      {/* Main Interaction Core */}
-      <div className="relative flex flex-col items-center justify-center z-10 w-full max-w-2xl">
-        {/* Outer Rings */}
-        <motion.div 
-          animate={{ rotate: 360 }}
-          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[440px] h-[440px] border border-white/[0.03] rounded-full hidden md:block" 
-        />
-        <motion.div 
-          animate={{ rotate: -360 }}
-          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[380px] h-[380px] border border-white/[0.08] rounded-full hidden md:block" 
-        />
-        
-        {/* Visualizer / Core Button */}
+      {/* Main Holographic Core */}
+      <div className="relative flex flex-col items-center justify-center z-10 w-full max-w-4xl">
+        {/* The Core Globe Container */}
         <div className="relative flex items-center justify-center">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleToggleConnection}
-            disabled={state === 'connecting'}
-            className={`relative w-[280px] h-[280px] rounded-full flex items-center justify-center transition-all duration-700 border border-white/10 group cursor-pointer overflow-hidden ${
-              state === 'disconnected' ? 'bg-[#0a0a0c]' : 
-              state === 'speaking' ? 'bg-[#0c0a0b] shadow-[0_0_80px_rgba(255,0,122,0.15)]' :
-              state === 'listening' ? 'bg-[#0a0c0a] shadow-[0_0_80px_rgba(34,197,94,0.15)]' :
-              'bg-[#0a0a0c] shadow-[0_0_80px_rgba(59,130,246,0.15)]'
-            }`}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="relative flex items-center justify-center"
           >
-            {/* Sassy State Indicator (Speaking Pulse) */}
-            <AnimatePresence>
-              {state === 'speaking' && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 1 }}
-                  animate={{ opacity: 0.4, scale: 1.05 }}
-                  exit={{ opacity: 0, scale: 1 }}
-                  transition={{ repeat: Infinity, duration: 1.5, repeatType: "reverse" }}
-                  className="absolute inset-0 rounded-full border-2 border-[#FF007A]"
-                />
-              )}
-            </AnimatePresence>
+            {/* The Holographic Globe Core */}
+            <div className={`relative w-80 h-80 rounded-full flex items-center justify-center transition-all duration-1000 ${
+              state === 'speaking' ? 'shadow-[0_0_120px_rgba(255,0,122,0.15)]' : 
+              state === 'listening' ? 'shadow-[0_0_120px_rgba(34,197,94,0.15)]' : 
+              state === 'connected' ? 'shadow-[0_0_120px_rgba(0,209,255,0.15)]' : ''
+            }`}>
+              {/* 3D Wireframe Globe Simulation */}
+              <div className="absolute inset-0 flex items-center justify-center perspective-[1000px]">
+                {/* Horizontal Rings (Latitude) */}
+                {[...Array(4)].map((_, i) => (
+                  <motion.div
+                    key={`lat-${i}`}
+                    animate={{ rotateX: 360 }}
+                    transition={{ duration: 15 + i * 5, repeat: Infinity, ease: "linear" }}
+                    className="absolute border border-cyan-500/10 rounded-full"
+                    style={{ 
+                      width: `${100 - i * 15}%`, 
+                      height: `${100 - i * 15}%`,
+                      opacity: 0.1 + (state !== 'disconnected' ? 0.2 : 0)
+                    }}
+                  />
+                ))}
 
-            {/* Waveform Visualization */}
-            <div className="flex items-end gap-1.5 h-16 z-10">
-              {[8, 12, 16, 14, 10, 16, 12, 8].map((h, i) => (
-                <motion.div
-                  key={i}
-                  animate={{ 
-                    height: state === 'speaking' ? [h*4, h*2, h*4] : 
-                            state === 'listening' ? [h*1.5, h*2.5, h*1.5] : h*4,
-                    opacity: i === 0 || i === 7 ? 0.4 : i === 3 ? 0.8 : 1
-                  }}
-                  transition={{ repeat: Infinity, duration: 0.5 + Math.random() * 0.5 }}
-                  className={`w-1 rounded-full ${state === 'speaking' ? 'bg-[#FF007A]' : state === 'listening' ? 'bg-green-500' : 'bg-zinc-700'}`}
-                />
-              ))}
-            </div>
+                {/* Vertical Rotating Rings (Longitude) */}
+                {[...Array(6)].map((_, i) => (
+                  <motion.div
+                    key={`long-${i}`}
+                    animate={{ rotateY: 360 }}
+                    transition={{ duration: 20 + i * 3, repeat: Infinity, ease: "linear" }}
+                    className={`absolute border rounded-full transition-colors duration-500 ${
+                      state === 'speaking' ? 'border-[#FF007A]/20' : 
+                      state === 'listening' ? 'border-green-500/20' : 'border-cyan-500/10'
+                    }`}
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      transform: `rotateZ(${i * 30}deg)`,
+                    }}
+                  />
+                ))}
 
-            {/* Central Mic/State Info Overlay */}
-            <div className="absolute -bottom-6 bg-black px-6 py-2 border border-white/20 rounded-full text-[10px] tracking-widest uppercase font-bold text-white shadow-xl">
-              {state === 'speaking' ? 'Speaking' : 
-               state === 'listening' ? 'Listening' : 
-               state === 'connected' ? 'Connected' : 
-               state === 'connecting' ? 'Syncing' : 'Disconnected'}
+                
+              </div>
+
+              {/* Central Neural Core (Button) */}
+              <div className="absolute inset-0 flex items-center justify-center z-30">
+                <motion.button
+                  whileHover={{ scale: 1.1, boxShadow: "0 0 50px rgba(0,209,255,0.3)" }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleToggleConnection}
+                  disabled={state === 'connecting'}
+                  className={`group relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-700 bg-black/60 backdrop-blur-xl border-2 ${
+                    state === 'disconnected' ? 'border-zinc-800 text-zinc-500' : 
+                    state === 'speaking' ? 'border-[#FF007A] text-[#FF007A] shadow-[0_0_40px_rgba(255,0,122,0.5)]' :
+                    state === 'listening' ? 'border-green-400 text-green-400 shadow-[0_0_40px_rgba(34,197,94,0.5)]' :
+                    'border-cyan-400 text-cyan-400 shadow-[0_0_40px_rgba(0,209,255,0.5)]'
+                  }`}
+                >
+                  <AvengersIcon className={`w-10 h-10 ${state !== 'disconnected' ? 'animate-pulse' : 'opacity-40'}`} />
+                  
+                  {/* High Speed Spin Ring */}
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    className="absolute -inset-1 border border-current border-t-transparent opacity-30 rounded-full"
+                  />
+                </motion.button>
+              </div>
+
+              {/* Reactive Core Pulse */}
+              <AnimatePresence>
+                {(state === 'speaking' || state === 'listening') && (
+                  <>
+                    <motion.div 
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 2.5, opacity: 0 }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                      className={`absolute inset-0 rounded-full border-2 ${state === 'speaking' ? 'border-[#FF007A]/40' : 'border-green-500/40'}`}
+                    />
+                    <motion.div 
+                      initial={{ scale: 1, opacity: 1 }}
+                      animate={{ scale: 0.8, opacity: 0.2 }}
+                      transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
+                      className={`absolute inset-10 rounded-full blur-2xl ${state === 'speaking' ? 'bg-[#FF007A]/20' : 'bg-green-500/20'}`}
+                    />
+                  </>
+                )}
+              </AnimatePresence>
             </div>
-          </motion.button>
+            
+            {/* Status Information Gadget */}
+            <div className="absolute -bottom-12 flex flex-col items-center gap-3">
+              <div className="px-6 py-1.5 bg-zinc-950/80 backdrop-blur-md border border-white/10 rounded-sm text-[8px] tracking-[0.3em] font-mono text-cyan-400/80 uppercase shadow-lg">
+                Link: {state}
+              </div>
+              
+              {/* Mini data bar */}
+              <div className="flex gap-1">
+                {[...Array(12)].map((_, i) => (
+                  <motion.div 
+                    key={i}
+                    animate={{ opacity: [0.3, 1, 0.3] }}
+                    transition={{ delay: i * 0.1, duration: 2, repeat: Infinity }}
+                    className={`w-1 h-1 rounded-full ${state === 'speaking' ? 'bg-[#FF007A]' : 'bg-cyan-500'}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </div>
 
-        {/* Subtitle / Persona Feedback */}
-        <div className="mt-20 text-center px-4">
+        {/* Persona Text / Subtitles */}
+        <div className="mt-32 max-w-lg text-center px-4 min-h-[60px]">
           <AnimatePresence mode="wait">
             <motion.p 
               key={state}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="text-zinc-500 font-serif italic text-xl leading-relaxed max-w-lg mx-auto"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              className="text-zinc-400 font-serif italic text-lg leading-relaxed normal-case"
             >
-              {state === 'disconnected' && "\"Initialize the voice link, tiger. I'm waiting.\""}
-              {state === 'connecting' && "\"Syncing my brilliance to your device... hold on.\""}
-              {state === 'connected' && "\"Oh, you're actually asking me that? Bold choice. <span class='text-white'>I'm listening.</span>\""}
-              {state === 'speaking' && "\"Give me a second while I fix your life with my sassy wisdom.\""}
-              {state === 'listening' && "\"Talk to me. Don't be shy, I don't bite... much.\""}
-              {state === 'error' && "\"System crash. You broke me. Or maybe it's just your vibe.\""}
+              {state === 'disconnected' && ""}
+              {state === 'connecting' && "\"Firing up the holographic processors... hold your horses.\""}
+              {state === 'connected' && ""}
+              {state === 'speaking' && "\"Analyzing data... injecting wisdom with a side of sass.\""}
+              {state === 'listening' && "\"Listening. Make it interesting or don't bother.\""}
+              {state === 'error' && "\"Interface corrupted. You probably did something stupid.\""}
             </motion.p>
           </AnimatePresence>
         </div>
       </div>
 
-      {/* Bottom Tool Dock */}
-      <div className="w-full flex justify-center items-end gap-4 z-10">
-        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex items-center gap-8 shadow-2xl overflow-hidden max-w-full">
-          {/* Tool Execution Status */}
-          <div className="flex flex-col min-w-[150px]">
-            <span className="text-[9px] uppercase tracking-[0.2em] text-[#00D1FF] font-bold">Function Execution</span>
-            <span className="text-sm font-mono mt-1 text-zinc-300 truncate">openWebsite(...)</span>
-          </div>
-          
-          <div className="h-8 w-[1px] bg-white/10 hidden sm:block" />
+      {/* Bottom Toolset Dock */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+        {/* Center: Main Controls */}
+        <div className="bg-black/80 backdrop-blur-2xl border border-white/5 rounded-full px-6 py-3 flex items-center gap-6 shadow-2xl relative overflow-hidden">
+          {/* Scanning line for the dock */}
+          <motion.div 
+            animate={{ x: [-200, 400] }}
+            transition={{ duration: 5, repeat: Infinity }}
+            className="absolute inset-0 w-24 h-full bg-gradient-to-r from-transparent via-cyan-500/5 to-transparent skew-x-12"
+          />
 
-          {/* Controls */}
+          <div className="flex items-center">
+            <div className={`w-2.5 h-2.5 rounded-full ${state !== 'disconnected' ? 'bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(0,209,255,0.5)]' : 'bg-zinc-800'}`} />
+          </div>
+
+          <div className="w-[1px] h-6 bg-white/5" />
+          
           <div className="flex items-center gap-4">
-            <button className={`p-3 rounded-2xl transition-colors ${state === 'listening' ? 'bg-green-500/10 text-green-500' : 'hover:bg-white/5 text-zinc-400'}`}>
-              <Mic className="w-6 h-6" />
-            </button>
             <button 
               onClick={() => client?.disconnect()}
               disabled={state === 'disconnected'}
-              className="p-3 bg-red-500/10 border border-red-500/30 rounded-2xl group transition-all hover:bg-red-500/20 disabled:opacity-30 disabled:grayscale"
+              title="Force Abort"
+              className="p-2 bg-red-950/20 border border-red-500/20 rounded-full group transition-all hover:bg-red-950/40 disabled:opacity-20"
             >
-              <div className="w-6 h-6 flex items-center justify-center">
-                 <div className="w-2.5 h-2.5 bg-red-500 rounded-sm group-hover:scale-110 transition-transform" />
+              <div className="w-5 h-5 flex items-center justify-center">
+                 <AvengersIcon className="w-5 h-5 text-red-600 transition-transform group-hover:scale-110" />
               </div>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Aesthetic Corner Accents */}
-      <div className="absolute bottom-8 left-8 flex flex-col gap-1 opacity-50">
-        <span className="text-[10px] text-zinc-600 font-mono tracking-tighter">LATENCY: 84ms</span>
-        <span className="text-[10px] text-zinc-600 font-mono tracking-tighter uppercase">Model: Gemini-3.1-Live</span>
+      {/* Hidden Identity (Keeping for structure if needed elsewhere but not visible) */}
+      <div className="hidden">
+        <div className="flex flex-col items-end gap-1 text-zinc-500">
+          <span className="text-[8px] tracking-widest text-[#FF007A]">Protocol_Active</span>
+        </div>
       </div>
 
-      <div className="absolute bottom-8 right-8 text-right opacity-50 pointer-events-none hidden md:block">
-        <p className="text-[10px] uppercase tracking-[0.4em] font-mono text-zinc-700">Aegis_OS // Quantum_Kernel</p>
+      {/* Session Timer Footer */}
+      <div className="absolute bottom-8 right-8 z-30 flex items-center gap-2 pointer-events-none sm:right-12">
+        <span className="text-cyan-500/30 text-[7px] tracking-widest font-bold">STIME</span>
+        <span className="text-zinc-500 text-[10px] font-bold tabular-nums">{elapsed}</span>
       </div>
     </div>
   );
 }
+

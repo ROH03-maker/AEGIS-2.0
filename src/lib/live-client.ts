@@ -72,6 +72,9 @@ export class LiveClient {
                 }
               }
             );
+            
+            // Trigger initial greeting
+            this.sendText("Hi boss, Aegis is online. Start with a flirty greeting.");
           },
           onmessage: async (message: LiveServerMessage) => {
             if (message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data) {
@@ -147,6 +150,14 @@ export class LiveClient {
   private updateState(state: ConnectionState) {
     this.state = state;
     this.onStateChange?.(state);
+  }
+
+  sendText(text: string) {
+    if (this.session) {
+      this.session.sendRealtimeInput({
+        parts: [{ text }]
+      });
+    }
   }
 
   disconnect() {
