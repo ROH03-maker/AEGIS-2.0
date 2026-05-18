@@ -74,7 +74,7 @@ export class LiveClient {
             );
             
             // Trigger initial greeting
-            this.sendText("Hi boss, Aegis is online. Start with a flirty greeting.");
+            this.sendText("Hi Roohi, Aegis is online. Start with a flirty greeting.");
           },
           onmessage: async (message: LiveServerMessage) => {
             if (message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data) {
